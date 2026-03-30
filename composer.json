@@ -1,0 +1,19 @@
+{
+  "name": "topdata/topdata-surcharge-sw6",
+  "description": "Fügt einen 3.9% Preisaufschlag im Warenkorb hinzu.",
+  "type": "shopware-platform-plugin",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Topdata\\TopdataSurchargeSW6\\": "src/"
+    }
+  },
+  "extra": {
+    "shopware-plugin-class": "Topdata\\TopdataSurchargeSW6\\TopdataSurchargeSW6",
+    "label": {
+      "de-DE": "Warenkorb Aufschlag 3,9%",
+      "en-GB": "Cart Surcharge 3.9%"
+    },
+    "priority": 9999
+  }
+}

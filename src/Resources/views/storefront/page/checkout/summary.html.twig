@@ -1,0 +1,54 @@
+{% sw_extends '@Storefront/storefront/page/checkout/summary.html.twig' %}
+
+{% block page_checkout_summary_inner %}
+    {# 1. Die Zwischensumme (Positionen) laden #}
+    {% sw_include '@Storefront/storefront/page/checkout/summary/summary-position.html.twig' with { summary: summary } %}
+
+    {# --- AUFSCHLAG DIREKT NACH ZWISCHENSUMME --- #}
+    {% set surcharge = summary.lineItems.get('custom-surcharge-3-9') %}
+    {% if surcharge %}
+        <dt class="col-7 checkout-aside-summary-label surcharge-label">
+            {{ surcharge.label }}
+        </dt>
+        <dd class="col-5 checkout-aside-summary-value surcharge-value">
+            {{ surcharge.price.totalPrice|currency }}
+        </dd>
+    {% endif %}
+    {# ------------------------------------------ #}
+
+    {# 2. Versandkosten laden #}
+    {% sw_include '@Storefront/storefront/page/checkout/summary/summary-shipping.html.twig' with { summary: summary } %}
+
+    {# 3. Der Rest (Steuern & Gesamtsumme) je nach Steuer-Status #}
+    {% if summary.price.taxStatus == 'gross' %}
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total.html.twig' with {
+            total: total,
+            decimals: decimals
+        } %}
+
+        {% if displayRounded %}
+            {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total-rounded.html.twig' with {
+                summary: summary,
+                decimals: context.totalRounding.decimals
+            } %}
+        {% endif %}
+
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-net.html.twig' with { summary: summary } %}
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-tax.html.twig' with { summary: summary } %}
+    {% else %}
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-net.html.twig' with { summary: summary } %}
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-tax.html.twig' with { summary: summary } %}
+
+        {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total.html.twig' with {
+            total: total,
+            decimals: decimals
+        } %}
+
+        {% if displayRounded %}
+            {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total-rounded.html.twig' with {
+                summary: summary,
+                decimals: context.totalRounding.decimals
+            } %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% sw_extends '@Storefront/storefront/component/checkout/offcanvas-cart-summary.html.twig' %}
+
+{% block component_offcanvas_summary_total %}
+
+    {# Nur ausführen, wenn der Warenkorb existiert #}
+    {% if page.cart and page.cart.lineItems %}
+        {% for lineItem in page.cart.lineItems %}
+            {% if lineItem.type == 'surcharge' %}
+                <dt class="col-7 summary-label">
+                    {{ lineItem.label }}
+                </dt>
+                <dd class="col-5 summary-value">
+                    {{ lineItem.price.totalPrice|currency }}
+                </dd>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {# Danach die normale Gesamtsumme laden #}
+    {{ parent() }}
+{% endblock %}

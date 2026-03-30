@@ -1,0 +1,17 @@
+{% sw_extends '@Storefront/storefront/page/checkout/confirm/confirm-checkout-summary.html.twig' %}
+
+{# Wir hängen uns an die Versandkosten an #}
+{% block page_checkout_confirm_summary_shipping %}
+    {{ parent() }}
+
+    {% for lineItem in page.cart.lineItems %}
+        {% if lineItem.type == 'surcharge' %}
+            <dt class="col-7 checkout-aside-summary-label">
+                {{ lineItem.label }}
+            </dt>
+            <dd class="col-5 checkout-aside-summary-value">
+                {{ lineItem.price.totalPrice|currency }}
+            </dd>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

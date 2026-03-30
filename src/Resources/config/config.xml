@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Aufschlag Einstellungen</title>
+        <title lang="en-GB">Surcharge Settings</title>
+
+        <!-- Feld für den Aufschlag in Prozent -->
+        <input-field type="float">
+            <name>surchargePercentage</name>
+            <label>Aufschlag in Prozent (%)</label>
+            <label lang="en-GB">Surcharge in percent (%)</label>
+            <defaultValue>3.9</defaultValue>
+            <helpText>Gib den prozentualen Aufschlag ein (z.B. 3.9)</helpText>
+        </input-field>
+
+        <!-- Feld für den Namen im Warenkorb -->
+        <input-field type="text">
+            <name>surchargeName</name>
+            <label>Name des Aufschlags (Warenkorb)</label>
+            <label lang="en-GB">Surcharge Name (Cart)</label>
+            <defaultValue>Service-Aufschlag</defaultValue>
+            <helpText>Dieser Name wird dem Kunden im Warenkorb und auf der Rechnung angezeigt.</helpText>
+        </input-field>
+
+        <!-- Optional: Ein/Ausschalter -->
+        <input-field type="bool">
+            <name>isActive</name>
+            <label>Aufschlag aktivieren</label>
+            <label lang="en-GB">Activate surcharge</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+    </card>
+</config>
