@@ -5,12 +5,8 @@
 
     <services>
         <service id="Topdata\TopdataSurchargeSW6\Core\Checkout\Cart\SurchargeCartProcessor">
-            <!-- 1. Argument: Der Taschenrechner -->
             <argument type="service" id="Shopware\Core\Checkout\Cart\Price\PercentagePriceCalculator"/>
-
-            <!-- 2. Argument (NEU): Der Config Service -->
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-
             <tag name="shopware.cart.processor" priority="4500" />
         </service>
     </services>
