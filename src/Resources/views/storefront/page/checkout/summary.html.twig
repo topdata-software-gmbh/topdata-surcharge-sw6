@@ -1,28 +1,41 @@
 {% sw_extends '@Storefront/storefront/page/checkout/summary.html.twig' %}
 
 {% block page_checkout_summary_inner %}
-    {# 1. Die Zwischensumme (Positionen) laden #}
-    {% sw_include '@Storefront/storefront/page/checkout/summary/summary-position.html.twig' with { summary: summary } %}
-
-    {# --- AUFSCHLAG DIREKT NACH ZWISCHENSUMME --- #}
+    {# 1. LSVA Betrag ermitteln #}
     {% set surcharge = summary.lineItems.get('custom-surcharge-3-9') %}
+    {% set surchargeAmount = 0 %}
+    {% if surcharge %}
+        {% set surchargeAmount = surcharge.price.totalPrice %}
+    {% endif %}
+
+    {# 2. Zwischensumme manuell berechnen (Original Positionen minus LSVA) #}
+    <dt class="col-7 checkout-aside-summary-label">
+        {{ "checkout.summaryPositionPrice"|trans|sw_sanitize }}
+    </dt>
+    <dd class="col-5 checkout-aside-summary-value">
+        {# Wir ziehen den Aufschlag von der Positionssumme ab #}
+        {{ (summary.price.positionPrice - surchargeAmount)|currency }}
+    </dd>
+
+    {# --- LSVA AUFSCHLAG SEPARAT ANZEIGEN --- #}
     {% if surcharge %}
         <dt class="col-7 checkout-aside-summary-label surcharge-label">
             {{ surcharge.label }}
         </dt>
         <dd class="col-5 checkout-aside-summary-value surcharge-value">
-            {{ surcharge.price.totalPrice|currency }}
+            {{ surchargeAmount|currency }}
         </dd>
     {% endif %}
     {# ------------------------------------------ #}
 
-    {# 2. Versandkosten laden #}
+    {# 3. Versandkosten laden #}
     {% sw_include '@Storefront/storefront/page/checkout/summary/summary-shipping.html.twig' with { summary: summary } %}
 
-    {# 3. Der Rest (Steuern & Gesamtsumme) je nach Steuer-Status #}
+    {# 4. Der Rest (Steuern & Gesamtsumme) #}
+    {# Hier bleibt alles wie im Standard, da die LSVA in summary.price.netPrice / totalPrice bereits enthalten ist #}
     {% if summary.price.taxStatus == 'gross' %}
         {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total.html.twig' with {
-            total: total,
+            total: summary.price.totalPrice,
             decimals: decimals
         } %}
 
@@ -40,7 +53,7 @@
         {% sw_include '@Storefront/storefront/page/checkout/summary/summary-tax.html.twig' with { summary: summary } %}
 
         {% sw_include '@Storefront/storefront/page/checkout/summary/summary-total.html.twig' with {
-            total: total,
+            total: summary.price.totalPrice,
             decimals: decimals
         } %}
 
