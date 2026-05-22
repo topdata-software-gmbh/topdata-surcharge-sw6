@@ -28,7 +28,7 @@ bin/console plugin:install --activate TopdataSurchargeSW6
 After installation, configure the plugin in Shopware Administration:
 
 1. Go to **Settings** → **System** → **Plugins**
-2. Find **Cart Surcharge 3.9%** and click on it
+2. Find **Topdata Cart Surcharge** and click on it
 3. Configure the following settings:
    - **Active**: Enable or disable the surcharge
    - **Surcharge Percentage**: The percentage to charge (e.g., 3.9)
@@ -36,8 +36,8 @@ After installation, configure the plugin in Shopware Administration:
 
 ## Requirements
 
-- Shopware 6.4 or higher
-- PHP 8.1 or higher
+- Shopware 6.7 or higher
+- PHP 8.3 or higher
 
 ## License
 
