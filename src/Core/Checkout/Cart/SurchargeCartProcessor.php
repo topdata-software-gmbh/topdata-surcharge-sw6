@@ -51,7 +51,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
             return;
         }
 
-        $surchargeId = 'custom-surcharge-3-9';
+        $surchargeId = '06a3e52f7afc42d69e255068886f1d22';
 
         // 3. Verhindern, dass er doppelt hinzugefügt wird
         if ($toCalculate->has($surchargeId)) {

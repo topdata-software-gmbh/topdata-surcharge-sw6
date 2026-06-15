@@ -2,7 +2,12 @@
 
 {% block page_checkout_summary_inner %}
     {# 1. LSVA Betrag ermitteln #}
-    {% set surcharge = summary.lineItems.get('custom-surcharge-3-9') %}
+    {% set surcharge = null %}
+    {% for lineItem in summary.lineItems %}
+        {% if lineItem.type == 'surcharge' %}
+            {% set surcharge = lineItem %}
+        {% endif %}
+    {% endfor %}
     {% set surchargeAmount = 0 %}
     {% if surcharge %}
         {% set surchargeAmount = surcharge.price.totalPrice %}
