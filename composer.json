@@ -1,7 +1,7 @@
 {
     "name":        "topdata/topdata-surcharge-sw6",
     "description": "Add a percentual surcharge to the cart in Shopware 6",
-    "version":     "v1.0.0",
+    "version":     "v1.1.0",
     "type":        "shopware-platform-plugin",
     "license":     "MIT",
     "authors":     [

@@ -5,8 +5,8 @@
 
     <services>
         <service id="Topdata\TopdataSurchargeSW6\Core\Checkout\Cart\SurchargeCartProcessor">
-            <argument type="service" id="Shopware\Core\Checkout\Cart\Price\PercentagePriceCalculator"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="tax.repository"/>
             <tag name="shopware.cart.processor" priority="4500" />
         </service>
     </services>
