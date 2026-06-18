@@ -70,7 +70,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
         $totalNet = 0.0;
         foreach ($products->getPrices() as $price) {
             $totalGross += $price->getTotalPrice();
-            $totalNet += $price->getNetPrice();
+            $totalNet += $price->getTotalPrice() - $price->getCalculatedTaxes()->getAmount();
         }
 
         $baseAmount = $surchargeBasis === 'net' ? $totalNet : $totalGross;
