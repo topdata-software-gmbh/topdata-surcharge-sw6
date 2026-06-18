@@ -40,11 +40,14 @@ After installation, configure the plugin in Shopware Administration:
 The surcharge is calculated on the **sum of all product net prices** and treated as a **net price** with tax added on top.
 
 ```
-example (B2B, net prices):
-  product net price — tax rate 2.6%:  135.60
-  LSVA surcharge = 135.60 × 3.9%   =    5.29 (net)
-  VAT 8.1% on LSVA                  =    0.43
-  LSVA total                        =    5.72
+totalPrice (net, taxRate=2.6%): 135.60
+Surcharge (3.9% [per plugin setting] "LSVA", net, taxRate=8.1% [per plugin setting]): 135.60 * 0.039 = 5.29
+Shipping (net, taxRate=8.1%) = 10.95
+
+VAT 2.6% = 135.60 * 0.026 = 3.53
+VAT 8.1% = (10.95 + 5.29) * 0.081 = 1.32
+
+Gesamtsumme = 135.60 + 5.29 + 10.95 + 3.53 + 1.32 = 156.69 (maybe rounded to 156.70 because of Rappenrundung)
 ```
 
 ## Requirements

@@ -8,6 +8,7 @@ use Shopware\Core\Checkout\Cart\CartProcessorInterface;
 use Shopware\Core\Checkout\Cart\LineItem\CartDataCollection;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Cart\Price\Struct\CalculatedPrice;
+use Shopware\Core\Checkout\Cart\Price\Struct\CartPrice;
 use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTax;
 use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTaxCollection;
 use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRule;
@@ -76,9 +77,14 @@ class SurchargeCartProcessor implements CartProcessorInterface
         $totalPrice = round($netPrice + $taxAmount, 2);
 
         $calculatedTax = new CalculatedTax($taxAmount, $taxRate, $netPrice);
+
+        // Determine whether to use the net or gross price based on the Sales Channel tax state (e.g. B2B Net vs B2C Gross)
+        $taxState = $context->getTaxState();
+        $priceValue = ($taxState === CartPrice::TAX_STATE_NET || $taxState === CartPrice::TAX_STATE_FREE) ? $netPrice : $totalPrice;
+
         $calculatedPrice = new CalculatedPrice(
-            $totalPrice,
-            $totalPrice,
+            $priceValue,
+            $priceValue,
             new CalculatedTaxCollection([$calculatedTax]),
             new TaxRuleCollection([new TaxRule($taxRate)])
         );
