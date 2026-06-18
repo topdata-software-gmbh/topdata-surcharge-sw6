@@ -33,7 +33,6 @@ class SurchargeCartProcessor implements CartProcessorInterface
         $percentage = $this->systemConfigService->getFloat('TopdataSurchargeSW6.config.surchargePercentage', $salesChannelId);
         $name = $this->systemConfigService->getString('TopdataSurchargeSW6.config.surchargeName', $salesChannelId);
         $taxId = $this->systemConfigService->getString('TopdataSurchargeSW6.config.taxId', $salesChannelId);
-        $surchargeBasis = $this->systemConfigService->getString('TopdataSurchargeSW6.config.surchargeBasis', $salesChannelId);
 
         if (!$isActive || $percentage <= 0.0) {
             return;
@@ -66,25 +65,15 @@ class SurchargeCartProcessor implements CartProcessorInterface
 
         $taxRate = (float) $taxEntity->getTaxRate();
 
-        $totalGross = 0.0;
-        $totalNet = 0.0;
+        $baseAmount = 0.0;
         foreach ($products->getPrices() as $price) {
-            $totalGross += $price->getTotalPrice();
-            $totalNet += $price->getTotalPrice() - $price->getCalculatedTaxes()->getAmount();
+            $baseAmount += $price->getTotalPrice();
         }
 
-        $baseAmount = $surchargeBasis === 'net' ? $totalNet : $totalGross;
         $rawSurcharge = $baseAmount * ($percentage / 100.0);
-
-        if ($surchargeBasis === 'gross') {
-            $totalPrice = round($rawSurcharge, 2);
-            $netPrice = round($totalPrice / (1 + $taxRate / 100), 2);
-            $taxAmount = round($totalPrice - $netPrice, 2);
-        } else {
-            $netPrice = round($rawSurcharge, 2);
-            $taxAmount = round($netPrice * ($taxRate / 100), 2);
-            $totalPrice = round($netPrice + $taxAmount, 2);
-        }
+        $netPrice = round($rawSurcharge, 2);
+        $taxAmount = round($netPrice * ($taxRate / 100), 2);
+        $totalPrice = round($netPrice + $taxAmount, 2);
 
         $calculatedTax = new CalculatedTax($taxAmount, $taxRate, $netPrice);
         $calculatedPrice = new CalculatedPrice(

@@ -33,6 +33,19 @@ After installation, configure the plugin in Shopware Administration:
    - **Active**: Enable or disable the surcharge
    - **Surcharge Percentage**: The percentage to charge (e.g., 3.9)
    - **Surcharge Name**: The label shown in the cart (e.g., "Service-Aufschlag")
+   - **Tax ID**: The tax rate applied to the surcharge
+
+### Calculation
+
+The surcharge is calculated on the **sum of all product net prices** and treated as a **net price** with tax added on top.
+
+```
+example (B2B, net prices):
+  product net price — tax rate 2.6%:  135.60
+  LSVA surcharge = 135.60 × 3.9%   =    5.29 (net)
+  VAT 8.1% on LSVA                  =    0.43
+  LSVA total                        =    5.72
+```
 
 ## Requirements
 

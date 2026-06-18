@@ -34,8 +34,8 @@
     </card>
 
     <card>
-        <title>Steuer &amp; Berechnungsbasis</title>
-        <title lang="en-GB">Tax &amp; Calculation Basis</title>
+        <title>Steuer</title>
+        <title lang="en-GB">Tax</title>
 
         <component name="sw-entity-single-select">
             <name>taxId</name>
@@ -45,26 +45,5 @@
             <helpText>Wähle den Steuersatz aus der Datenbank, der auf den Aufschlag angewendet werden soll (z.B. 8.1% oder 2.6%).</helpText>
             <helpText lang="en-GB">Select the tax rate from the database to apply to the surcharge (e.g. 8.1% or 2.6%).</helpText>
         </component>
-
-        <input-field type="single-select">
-            <name>surchargeBasis</name>
-            <label>Berechnungsbasis des Aufschlags</label>
-            <label lang="en-GB">Surcharge calculation basis</label>
-            <options>
-                <option>
-                    <id>gross</id>
-                    <name>Brutto (Aufschlag inkl. MwSt.)</name>
-                    <name lang="en-GB">Gross (surcharge incl. VAT)</name>
-                </option>
-                <option>
-                    <id>net</id>
-                    <name>Netto (Aufschlag exkl. MwSt.)</name>
-                    <name lang="en-GB">Net (surcharge excl. VAT)</name>
-                </option>
-            </options>
-            <defaultValue>gross</defaultValue>
-            <helpText>Definiert, ob der eingegebene Prozentsatz auf Brutto- oder Nettobeträgen basiert. Bei "Brutto" wird der Aufschlag inkl. MwSt. berechnet, bei "Netto" wird die MwSt. aufgeschlagen.</helpText>
-            <helpText lang="en-GB">Defines whether the entered percentage is based on gross or net amounts. With "Gross" the surcharge is calculated incl. VAT, with "Net" the VAT is added on top.</helpText>
-        </input-field>
     </card>
 </config>
