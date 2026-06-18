@@ -86,7 +86,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
             $totalPrice = round($netPrice + $taxAmount, 2);
         }
 
-        $calculatedTax = new CalculatedTax($taxAmount, $netPrice, $taxRate);
+        $calculatedTax = new CalculatedTax($taxAmount, $taxRate, $netPrice);
         $calculatedPrice = new CalculatedPrice(
             $totalPrice,
             $totalPrice,
