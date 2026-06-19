@@ -34,6 +34,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
         $percentage = $this->systemConfigService->getFloat('TopdataSurchargeSW6.config.surchargePercentage', $salesChannelId);
         $name = $this->systemConfigService->getString('TopdataSurchargeSW6.config.surchargeName', $salesChannelId);
         $taxId = $this->systemConfigService->getString('TopdataSurchargeSW6.config.taxId', $salesChannelId);
+        $enableRappenRundung = $this->systemConfigService->getBool('TopdataSurchargeSW6.config.enableRappenRundung', $salesChannelId);
 
         if (!$isActive || $percentage <= 0.0) {
             return;
@@ -71,10 +72,16 @@ class SurchargeCartProcessor implements CartProcessorInterface
             $baseAmount += $price->getTotalPrice();
         }
 
-        $rawSurcharge = $baseAmount * ($percentage / 100.0);
-        $netPrice = round($rawSurcharge, 2);
-        $taxAmount = round($netPrice * ($taxRate / 100), 2);
-        $totalPrice = round($netPrice + $taxAmount, 2);
+        if ($enableRappenRundung) {
+            $netPrice = round($baseAmount * ($percentage / 100.0) * 20) / 20;
+            $taxAmount = round($netPrice * ($taxRate / 100) * 20) / 20;
+            $totalPrice = round(($netPrice + $taxAmount) * 20) / 20;
+        } else {
+            $rawSurcharge = $baseAmount * ($percentage / 100.0);
+            $netPrice = round($rawSurcharge, 2);
+            $taxAmount = round($netPrice * ($taxRate / 100), 2);
+            $totalPrice = round($netPrice + $taxAmount, 2);
+        }
 
         $calculatedTax = new CalculatedTax($taxAmount, $taxRate, $netPrice);
 

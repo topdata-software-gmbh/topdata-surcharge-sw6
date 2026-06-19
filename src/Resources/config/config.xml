@@ -34,6 +34,20 @@
     </card>
 
     <card>
+        <title>Rundungseinstellungen</title>
+        <title lang="en-GB">Rounding Settings</title>
+
+        <input-field type="bool">
+            <name>enableRappenRundung</name>
+            <label>Auf 0.05 CHF runden (Rappenrundung)</label>
+            <label lang="en-GB">Round to 0.05 CHF (Swiss rappen rounding)</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Aktiviert die Rappenrundung des Aufschlags auf 0.05 CHF (für die Schweiz).</helpText>
+            <helpText lang="en-GB">Enables rounding of the surcharge to 0.05 CHF (for Switzerland).</helpText>
+        </input-field>
+    </card>
+
+    <card>
         <title>Steuer</title>
         <title lang="en-GB">Tax</title>
 
