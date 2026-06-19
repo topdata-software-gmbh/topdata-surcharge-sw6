@@ -5,7 +5,7 @@ A Shopware 6 plugin that adds a configurable percentage surcharge to the shoppin
 ## Features
 
 - Configurable surcharge percentage (default: 3.9%)
-- Customizable surcharge name/label
+- Multi-language support using Shopware snippets
 - Enable/disable the surcharge via administration
 - Automatically applied to cart
 
@@ -32,8 +32,17 @@ After installation, configure the plugin in Shopware Administration:
 3. Configure the following settings:
    - **Active**: Enable or disable the surcharge
    - **Surcharge Percentage**: The percentage to charge (e.g., 3.9)
-   - **Surcharge Name**: The label shown in the cart (e.g., "Service-Aufschlag")
+   - **Surcharge Name**: The translation key or label shown in the cart.
+     - **Default**: `TopdataSurchargeSW6.surchargeName`
+     - You can use a custom translation key or enter plain text directly. If plain text is entered, it will be used regardless of the chosen locale.
    - **Tax ID**: The tax rate applied to the surcharge
+
+### Translating Surcharge Names
+The default value uses Shopware snippets. To customize translations:
+1. Go to **Settings** → **Shop** → **Snippets** in your Shopware Administration.
+2. Select your language snippet set.
+3. Search for the key `TopdataSurchargeSW6.surchargeName`.
+4. Enter your localized text (e.g., "LSVA" for German, "Service Surcharge" for English, "RPLP" for French).
 
 ### Calculation
 

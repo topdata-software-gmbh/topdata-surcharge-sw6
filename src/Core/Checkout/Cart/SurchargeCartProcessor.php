@@ -17,12 +17,14 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SurchargeCartProcessor implements CartProcessorInterface
 {
     public function __construct(
         private readonly SystemConfigService $systemConfigService,
         private readonly EntityRepository $taxRepository,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -41,8 +43,10 @@ class SurchargeCartProcessor implements CartProcessorInterface
         }
 
         if (trim($name) === '') {
-            $name = 'Service-Aufschlag';
+            $name = 'TopdataSurchargeSW6.surchargeName';
         }
+
+        $translatedName = $this->translator->trans($name);
 
         $products = $toCalculate->getLineItems()->filterType(LineItem::PRODUCT_LINE_ITEM_TYPE);
         if ($products->count() === 0) {
@@ -97,7 +101,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
         );
 
         $surchargeItem = new LineItem($surchargeId, 'surcharge', null, 1);
-        $surchargeItem->setLabel($name);
+        $surchargeItem->setLabel($translatedName);
         $surchargeItem->setGood(false);
         $surchargeItem->setRemovable(false);
         $surchargeItem->setPrice($calculatedPrice);

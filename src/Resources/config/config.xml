@@ -20,8 +20,10 @@
             <name>surchargeName</name>
             <label>Name des Aufschlags (Warenkorb)</label>
             <label lang="en-GB">Surcharge Name (Cart)</label>
-            <defaultValue>Service-Aufschlag</defaultValue>
-            <helpText>Dieser Name wird dem Kunden im Warenkorb und auf der Rechnung angezeigt.</helpText>
+            <defaultValue>TopdataSurchargeSW6.surchargeName</defaultValue>
+            <helpText>Dieser Name wird dem Kunden im Warenkorb und auf der Rechnung angezeigt. Kann ein Übersetzungsschlüssel (z.B. TopdataSurchargeSW6.surchargeName) oder ein fester Text sein.</helpText>
+            <helpText lang="en-GB">This name is displayed to the customer in the shopping cart and on the invoice. Can be a translation key (e.g. TopdataSurchargeSW6.surchargeName) or a fixed text.</helpText>
+            <helpText lang="fr-FR">Ce nom est affiché au client dans le panier et sur la facture. Peut être une clé de traduction (p. ex. TopdataSurchargeSW6.surchargeName) ou un texte fixe.</helpText>
         </input-field>
 
         <!-- Optional: Ein/Ausschalter -->
