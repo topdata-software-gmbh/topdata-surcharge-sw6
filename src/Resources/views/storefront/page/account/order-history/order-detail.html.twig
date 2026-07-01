@@ -1,0 +1,56 @@
+{% sw_extends '@Storefront/storefront/page/account/order-history/order-detail.html.twig' %}
+
+{% block page_account_order_item_detail_summary %}
+    {% set surchargeItem = null %}
+    {% for lineItem in order.nestedLineItems %}
+        {% if lineItem.type == 'surcharge' %}
+            {% set surchargeItem = lineItem %}
+        {% endif %}
+    {% endfor %}
+
+    <dl class="row g-0 order-item-detail-summary" role="region" aria-label="{{ 'account.orderSummaryAriaLabel'|trans|striptags }}">
+        {% if surchargeItem %}
+            <dt class="col-6 col-md-8">{{ surchargeItem.label }}</dt>
+            <dd class="col-6 col-md-4">{{ surchargeItem.totalPrice|currency(order.currency.isoCode) }}</dd>
+        {% endif %}
+
+        {% if order.deliveries|length > 0 %}
+            <dt class="col-6 col-md-8">{{ 'account.orderItemShippingcosts'|trans|sw_sanitize }}</dt>
+            <dd class="col-6 col-md-4">{{ order.shippingTotal|currency(order.currency.isoCode) }}</dd>
+        {% endif %}
+
+        {% if order.taxStatus !== constant('Shopware\\Core\\Checkout\\Cart\\Price\\Struct\\CartPrice::TAX_STATE_FREE') %}
+            {% for calculatedTax in order.price.calculatedTaxes %}
+                <dt class="col-6 col-md-8">
+                    {% if order.taxStatus === constant('Shopware\\Core\\Checkout\\Cart\\Price\\Struct\\CartPrice::TAX_STATE_GROSS') %}
+                        {{ 'checkout.summaryTaxInclude'|trans({
+                            '%rate%':  calculatedTax.taxRate
+                        })|sw_sanitize }}
+                    {% else %}
+                        {{ 'checkout.summaryTax'|trans({
+                            '%rate%':  calculatedTax.taxRate
+                        })|sw_sanitize }}
+                    {% endif %}
+                </dt>
+                <dd class="col-6 col-md-4">
+                    {{ calculatedTax.tax|currency(order.currency.isoCode) }}
+                </dd>
+            {% endfor %}
+        {% endif %}
+
+        <dt class="col-6 col-md-8">
+            {% if order.taxStatus === constant('Shopware\\Core\\Checkout\\Cart\\Price\\Struct\\CartPrice::TAX_STATE_FREE') %}
+                {{ 'account.orderItemNetTotal'|trans|sw_sanitize }}
+            {% else %}
+                {{ 'account.orderItemTotal'|trans|sw_sanitize }}
+            {% endif %}
+        </dt>
+        <dd class="col-6 col-md-4 order-item-total">
+            {% if order.taxStatus === constant('Shopware\\Core\\Checkout\\Cart\\Price\\Struct\\CartPrice::TAX_STATE_FREE') %}
+                {{ order.amountNet|currency(order.currency.isoCode) }}
+            {% else %}
+                {{ order.amountTotal|currency(order.currency.isoCode) }}
+            {% endif %}
+        </dd>
+    </dl>
+{% endblock %}

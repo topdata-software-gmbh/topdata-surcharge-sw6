@@ -1,0 +1,33 @@
+{% sw_extends '@Storefront/storefront/layout/header/actions/cart-widget.html.twig' %}
+
+{% block layout_header_actions_cart_widget %}
+    {% set surchargeCount = 0 %}
+    {% set surchargeAmount = 0 %}
+    {% if page.cart and page.cart.lineItems %}
+        {% for lineItem in page.cart.lineItems %}
+            {% if lineItem.type == 'surcharge' %}
+                {% set surchargeCount = surchargeCount + 1 %}
+                {% set surchargeAmount = surchargeAmount + lineItem.price.totalPrice %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% set visibleCount = max(0, page.cart.lineItems|length - surchargeCount) %}
+    {% set visiblePositionPrice = page.cart.price.positionPrice - surchargeAmount %}
+
+    <span class="header-cart-icon">
+        {% sw_icon 'bag' %}
+    </span>
+    {% if visibleCount > 0 %}
+        <span class="badge bg-primary header-cart-badge">{{ visibleCount }}</span>
+    {% endif %}
+    <span class="header-cart-total d-none d-sm-inline-block ms-sm-2">
+        {{ visiblePositionPrice|currency }}
+    </span>
+
+    <span class="visually-hidden" id="cart-widget-aria-label">
+        {{ 'checkout.cartScreenReaderUpdate'|trans({
+            '%count%': visibleCount,
+            '%total%': visiblePositionPrice|currency,
+        })|sw_sanitize }}
+    </span>
+{% endblock %}
