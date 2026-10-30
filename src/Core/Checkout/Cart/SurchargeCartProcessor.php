@@ -71,10 +71,8 @@ class SurchargeCartProcessor implements CartProcessorInterface
 
         $taxRate = (float) $taxEntity->getTaxRate();
 
-        $baseAmount = 0.0;
-        foreach ($products->getPrices() as $price) {
-            $baseAmount += $price->getTotalPrice();
-        }
+        $cartPrice = $toCalculate->getPrice();
+        $baseAmount = $cartPrice->getPositionPrice();
 
         if ($enableRappenRundung) {
             $netPrice = round($baseAmount * ($percentage / 100.0) * 20) / 20;
