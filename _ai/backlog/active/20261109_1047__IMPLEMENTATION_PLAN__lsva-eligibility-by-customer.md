@@ -8,7 +8,7 @@
 
 Die LSVA (Warenkorb-Aufschlag) soll künftig **nur an der Kasse** erscheinen und dort nur für eingeloggte Bestandskunden, deren IPIM-Zusatzfeld `topdata_ipim_lsva` den Wert `yes` hat.
 
-Warenkorb, Offcanvas und Header zeigen keine LSVA. Die LSVA wird dort auch nicht berechnet, damit die angezeigten Summen konsistent sind. Erst auf der Bestellübersicht (Confirm) und bei der Bestellung selbst wird sie dem Cart hinzugefügt.
+Warenkorb, Offcanvas und Header zeigen keine LSVA. Die LSVA wird dort auch nicht berechnet, damit die angezeigten Summen konsistent sind. Erst auf der Bestellübersicht (Confirm) und bei der Bestellung selbst wird sie dem Cart hinzugefügt. Die Bestellbestätigungsmail zeigt die LSVA ebenfalls.
 
 | Kunde | LSVA an der Kasse |
 |---|---|
@@ -191,7 +191,16 @@ Diese Dateien bleiben unverändert:
 - `src/Resources/views/storefront/layout/header/actions/cart-widget.html.twig` – findet kein `surcharge`-LineItem; Betrag und Anzahl bleiben unverändert.
 - `src/Resources/views/storefront/component/line-item/line-item.html.twig` – blendet das `surcharge`-LineItem in der Positionsliste aus; auf der Confirm-Seite erscheint die LSVA dadurch nur in der Summary.
 
-### 5. Cleanup vor Go-Live
+### 5. Bestellbestätigungsmail
+
+Die Bestellbestätigungsmail zeigt die LSVA bereits, ohne dass Templates geändert werden müssen:
+
+- `src/Subscriber/MailSurchargeSubscriber.php` reagiert auf `MailBeforeValidateEvent`, sucht das `surcharge`-OrderLineItem, entfernt es aus `order.lineItems` und stellt `surchargeLabel` sowie `surchargeTotal` als Template-Daten bereit.
+- Die Datenbank-Mail-Templates für `order_confirmation_mail` enthalten bereits einen Block `{% if surchargeLabel %}` und rendern `surchargeLabel` + `surchargeTotal`.
+- Ist keine LSVA in der Bestellung (Gast, Neukunde, `no`), bleiben beide Variablen `null`; der Block wird nicht gerendert.
+- Es sind **keine Änderungen** an Mail-Templates, Snippets oder am `MailSurchargeSubscriber` nötig.
+
+### 6. Cleanup vor Go-Live
 
 Diese Reste sind nicht Teil der LSVA-Logik, müssen aber vor dem Release entfernt werden:
 
@@ -208,6 +217,7 @@ Diese Reste sind nicht Teil der LSVA-Logik, müssen aber vor dem Release entfern
 - **Confirm (`frontend.checkout.confirm.page`):** `surcharge`-LineItem wird berechnet. Summary zeigt die LSVA-Zeile; Gesamtsumme enthält sie. Die Positionsliste blendet sie weiterhin aus.
 - **Bestellung (`frontend.checkout.finish.order`):** LSVA wird erneut berechnet und ist in der Bestellung enthalten.
 - **Finish-Seite:** Order-Summary und Order-Detail zeigen die LSVA, weil sie im Order-Objekt enthalten ist.
+- **Bestellbestätigungsmail:** Zeigt die LSVA-Zeile über `surchargeLabel`/`surchargeTotal`, sofern die Bestellung eine LSVA enthält.
 - **Zurück zum Warenkorb:** Beim Neuberechnen wird die LSVA nicht mehr hinzugefügt und verschwindet.
 - **Login/Logout:** Beim nächsten Confirm-Aufruf entscheidet der aktuelle Kundenstatus; alte LineItems werden nicht fortgeschrieben.
 
@@ -218,7 +228,7 @@ Voraussetzung: Testkunden mit `topdata_ipim_lsva = yes` und `no` über Admin ode
 1. Eingeloggter `yes`-Kunde, Warenkorb: keine LSVA, Summe ohne LSVA.
 2. Derselbe Kunde, Confirm: LSVA-Zeile sichtbar, Gesamtsumme mit LSVA.
 3. Zurück zum Warenkorb: LSVA verschwindet wieder.
-4. Bestellung abschicken: LSVA ist in der Bestellung, im Order-Detail und in der Mail enthalten.
+4. Bestellung abschicken: LSVA ist in der Bestellung, im Order-Detail und in der Bestellbestätigungsmail enthalten (deutsch und französisch prüfen).
 5. Eingeloggter `no`-Kunde, Confirm: keine LSVA, Summe ohne LSVA.
 6. Neukunde nach Registrierung, Confirm: keine LSVA.
 7. Gast, unbekannte E-Mail, Checkout: keine LSVA in Bestellung oder Mail.
