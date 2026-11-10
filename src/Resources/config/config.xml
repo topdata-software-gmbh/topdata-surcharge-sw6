@@ -36,6 +36,23 @@
     </card>
 
     <card>
+        <title>Kundenprüfung</title>
+        <title lang="en-GB">Customer Check</title>
+        <title lang="fr-FR">Vérification client</title>
+
+        <input-field type="text">
+            <name>lsvaCustomerField</name>
+            <label>IPIM-Feldname für LSVA</label>
+            <label lang="en-GB">IPIM field name for LSVA</label>
+            <label lang="fr-FR">Nom du champ IPIM pour la LSVA</label>
+            <defaultValue>topdata_ipim_lsva</defaultValue>
+            <helpText>Technischer Name des Kunden-Custom-Fields, z. B. topdata_ipim_lsva.</helpText>
+            <helpText lang="en-GB">Technical name of the customer custom field, e.g. topdata_ipim_lsva.</helpText>
+            <helpText lang="fr-FR">Nom technique du custom field client, p. ex. topdata_ipim_lsva.</helpText>
+        </input-field>
+    </card>
+
+    <card>
         <title>Rundungseinstellungen</title>
         <title lang="en-GB">Rounding Settings</title>
 

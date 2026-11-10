@@ -18,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Topdata\TopdataSurchargeSW6\Service\LsvaTaxApplicabilityService;
 
 class SurchargeCartProcessor implements CartProcessorInterface
 {
@@ -25,6 +26,7 @@ class SurchargeCartProcessor implements CartProcessorInterface
         private readonly SystemConfigService $systemConfigService,
         private readonly EntityRepository $taxRepository,
         private readonly TranslatorInterface $translator,
+        private readonly LsvaTaxApplicabilityService $lsvaTaxApplicabilityService,
     ) {
     }
 
@@ -54,6 +56,15 @@ class SurchargeCartProcessor implements CartProcessorInterface
         }
 
         $surchargeId = '06a3e52f7afc42d69e255068886f1d22';
+
+        if (!$this->lsvaTaxApplicabilityService->isLsvaApplicable($context)) {
+            if ($toCalculate->has($surchargeId)) {
+                $toCalculate->getLineItems()->remove($surchargeId);
+            }
+
+            return;
+        }
+
         if ($toCalculate->has($surchargeId)) {
             return;
         }
