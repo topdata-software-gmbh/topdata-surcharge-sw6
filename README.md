@@ -36,6 +36,11 @@ After installation, configure the plugin in Shopware Administration:
      - **Default**: `TopdataSurchargeSW6.surchargeName`
      - You can use a custom translation key or enter plain text directly. If plain text is entered, it will be used regardless of the chosen locale.
    - **Tax ID**: The tax rate applied to the surcharge
+   - **Custom field for LSVA eligibility**: Name of the customer custom field that marks a customer as LSVA-liable. Default: `topdata_tg_lsva` (field set `topdata_tg`). The surcharge is only calculated when the field normalizes to `yes`, `ja`, `true` or `1`; `no`, `nein`, `false` or `0` disables it.
+
+### LSVA Eligibility
+
+The surcharge is only added for LSVA-liable customers. A customer is liable when the configured custom field contains a truthy value. Guests without a value fall back to the newest previous guest record with the same e-mail that has a value. Customers without the field are not charged until the external integration sets it.
 
 ### Translating Surcharge Names
 The default value uses Shopware snippets. To customize translations:
@@ -46,7 +51,7 @@ The default value uses Shopware snippets. To customize translations:
 
 ### Calculation
 
-The surcharge is calculated on the **sum of all product net prices** and treated as a **net price** with tax added on top.
+The surcharge is calculated on the **cart position price** (after promotions) and treated as a **net price** with tax added on top.
 
 ```
 totalPrice (net, taxRate=2.6%): 135.60

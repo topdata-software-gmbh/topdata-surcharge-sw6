@@ -22,10 +22,11 @@ Shopware DI bootstrap class: `Topdata\TopdataSurchargeSW6\TopdataSurchargeSW6` (
 
 ## How it works (entrypoints)
 
-- `src/Core/Checkout/Cart/SurchargeCartProcessor.php:31` — `CartProcessorInterface::process()`. Registered via `<tag name="shopware.cart.processor" priority="4500" />` in `services.xml`. Reads five system-config keys under the `TopdataSurchargeSW6.config.*` namespace (`isActive`, `surchargePercentage`, `surchargeName`, `taxId`, `enableRappenRundung`) and adds a non-removable `LineItem` with a **hardcoded ID** `06a3e52f7afc42d69e255068886f1d22` and type `surcharge`.
+- `src/Core/Checkout/Cart/SurchargeCartProcessor.php:31` — `CartProcessorInterface::process()`. Registered via `<tag name="shopware.cart.processor" priority="4500" />` in `services.xml`. Reads five system-config keys under the `TopdataSurchargeSW6.config.*` namespace (`isActive`, `surchargePercentage`, `surchargeName`, `taxId`, `enableRappenRundung`); the LSVA gate additionally reads `lsvaCustomerField`. Adds a non-removable `LineItem` with a **hardcoded ID** `06a3e52f7afc42d69e255068886f1d22` and type `surcharge`.
+- `src/Service/LsvaTaxApplicabilityService.php:21` — gate that decides whether the surcharge is calculated at all. Requires a `CustomerEntity` in the `SalesChannelContext` whose custom field (default `topdata_tg_lsva`, configurable via `lsvaCustomerField`) normalizes to `true` (`yes`/`ja`/`true`/`1`). `no`/`nein`/`false`/`0` disables it. Guests without a value fall back to the newest previous guest row with the same e-mail that has a value. No customer ⇒ no surcharge, and `SurchargeCartProcessor.php:60` removes any existing surcharge line item.
 - The `surchargeName` config value is treated as a **translator key** (default `TopdataSurchargeSW6.surchargeName`) — translated via `TranslatorInterface`. If empty, it falls back to the same key. Plain text is used verbatim.
 - `src/Subscriber/MailSurchargeSubscriber.php` — On `MailBeforeValidateEvent`, finds the order's `surcharge` line item, strips all `surcharge` line items from `order.lineItems` (so they don't double-render in mail templates), and injects `surchargeLabel` + `surchargeTotal` into the mail template data.
-- Storefront templates all use `{% sw_extends '@Storefront/...' %}` to override cart, offcanvas, header, summary, order-history, and order-detail views.
+- Storefront templates all use `{% sw_extends '@Storefront/...' %}` to override offcanvas cart summary, line items, cart widget, checkout summary, and order-detail views.
 
 ## Quirks / gotchas
 
@@ -34,10 +35,10 @@ Shopware DI bootstrap class: `Topdata\TopdataSurchargeSW6\TopdataSurchargeSW6` (
 - **Two rounding modes** (`SurchargeCartProcessor.php:79-88`):
   - Default (`enableRappenRundung = false`): `round(..., 2)`.
   - Swiss Rappenrundung (`enableRappenRundung = true`): `round(x * 20) / 20` — rounds to nearest 0.05.
-- **Surcharge base = sum of product net `totalPrice`s**, not the cart's position price. Don't conflate with `page.cart.price.positionPrice` — the offcanvas template at `src/Resources/views/storefront/component/checkout/offcanvas-cart-summary.html.twig:17` recomputes the product subtotal as `positionPrice - surchargeAmount` to avoid the surcharge being double-counted in the displayed product total.
+- **Surcharge base = `$toCalculate->getPrice()->getPositionPrice()`** (`SurchargeCartProcessor.php:86`), i.e. the cart position price including promotions, not the sum of product line-item totals. The offcanvas template at `src/Resources/views/storefront/component/checkout/offcanvas-cart-summary.html.twig:17` recomputes the displayed product subtotal as `positionPrice - surchargeAmount` so the surcharge is not double-counted.
 - **Mail subscriber mutates `order.lineItems`** (`MailSurchargeSubscriber.php:60`) by replacing the collection with one that excludes `surcharge` line items. This is intentional — the surcharge is exposed separately via `surchargeLabel` / `surchargeTotal`.
 - **Plugin class name typo in `composer.json`**: `extra.label.de-DE` reads "Topdate Warenkorb Aufschlag" (should be "Topdaten"). Don't fix in isolation — confirm with maintainers first.
-- **`src/Resources/views/storefront/page/checkout/cart/index.html.twig`** contains a leftover orange debug banner (`"TEST: ICH BIN DIE WARENKORB-ZUSAMMENFASSUNG"`) overriding `block page_checkout_cart_summary`. **Remove this before any release** — it's not in any test suite and easy to miss.
+- **LSVA custom-field contract:** the customer custom field is `topdata_tg_lsva` in the field set `topdata_tg`. These names are an external data contract visible to shop administrators and are created/filled by an external integration, not by this plugin. Do not rename them; only the configurable lookup key `TopdataSurchargeSW6.config.lsvaCustomerField` may point to a different field.
 - The surcharge appears as a cart line item type `'surcharge'` — any new Twig template iterating `lineItems` should either filter it out or render it explicitly (see offcanvas template for the pattern).
 
 ## Setup for development

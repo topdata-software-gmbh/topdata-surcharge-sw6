@@ -2,21 +2,21 @@
 
 **Datum:** 2026-11-10  
 **Plugin:** `TopdataSurchargeSW6`  
-**Status:** Design abgestimmt, Implementierung offen
+**Status:** Umgesetzt (2026-11-19)
 
 ## Ziel
 
 Die LSVA ist eine **zusätzliche Steuer**, keine Vergünstigung und keine Berechtigung. Sie bleibt wie bisher in **Warenkorb, Offcanvas, Checkout und Bestellbestätigungsmail** sichtbar, wird aber nur noch berechnet, wenn der Kunde LSVA-pflichtig ist.
 
-LSVA-pflichtig ist ein Kunde, wenn im `SalesChannelContext` ein Customer vorhanden ist und dessen IPIM-Zusatzfeld `topdata_ipim_lsva` den Wert `yes` hat. `yes` bedeutet: **LSVA wird erhoben.** **Gastkunden sind nicht pauschal ausgeschlossen.** Sie werden gespeichert und müssen geprüft werden.
+LSVA-pflichtig ist ein Kunde, wenn im `SalesChannelContext` ein Customer vorhanden ist und dessen Kunden-Zusatzfeld aus dem Feld-Set `topdata_tg` (`topdata_tg_lsva`) den Wert `yes` hat. `yes` bedeutet: **LSVA wird erhoben.** **Gastkunden sind nicht pauschal ausgeschlossen.** Sie werden gespeichert und müssen geprüft werden.
 
 **Änderungsumfang:** ein neuer Prüfservice, dessen Registrierung, ein neues Konfigurationsfeld für den Custom-Field-Namen und ein Gate im bestehenden `SurchargeCartProcessor`. Die bestehende Berechnung, das LineItem, die Steuerlogik, alle Templates, die Mail-Logik, der Header und die Better-Checkout-Logik bleiben unverändert.
 
 | Kunde | LSVA |
 |---|---|
 | Kein Customer im Context (nicht eingeloggt, kein Gast-Kontext) | nein |
-| Gast, aktueller Datensatz `topdata_ipim_lsva = yes` | ja |
-| Gast, aktueller Datensatz `topdata_ipim_lsva = no` | nein |
+| Gast, aktueller Datensatz `topdata_tg_lsva = yes` | ja |
+| Gast, aktueller Datensatz `topdata_tg_lsva = no` | nein |
 | Gast, aktueller Datensatz ohne/leer/unbekannt, früherer Gast mit gleicher E-Mail hat Wert | Wert des **neuesten** früheren Gastdatensatzes mit gesetztem Wert |
 | Gast, kein früherer Gastdatensatz mit Wert | nein |
 | Eingeloggter Bestandskunde, `yes` | ja |
@@ -31,7 +31,7 @@ LSVA-pflichtig ist ein Kunde, wenn im `SalesChannelContext` ein Customer vorhand
 - Keine Änderung an `cart-widget.html.twig`, `summary.html.twig`, `offcanvas-cart-summary.html.twig` oder `line-item.html.twig`. Diese Templates reagieren bereits korrekt auf das Vorhandensein bzw. Fehlen des `surcharge`-LineItems.
 - **Keine Änderung an der bestehenden Berechnung, am LineItem, an der Steuerlogik, an Steuersatz, Rappenrundung oder LSVA-Höhe.** Die LSVA wird weiterhin genau wie heute berechnet.
 - **Keine Änderung an der Better-Checkout-Logik.** Die bestehende E-Mail-Blockierung bei bekannten Nicht-Gast-E-Mails bleibt unverändert.
-- Kein Eingriff in IPIM. Das Zusatzfeld `topdata_ipim_lsva` wird dort angelegt und gepflegt.
+- Kein Eingriff in das Feld-Set. Das Zusatzfeld `topdata_tg_lsva` im Set `topdata_tg` wird extern angelegt und gepflegt.
 - Keine Änderung an Mail-Templates oder Snippets. `MailSurchargeSubscriber` und die DB-Templates funktionieren bereits.
 
 ## Entscheidungen
@@ -60,7 +60,7 @@ LSVA-pflichtig ist ein Kunde, wenn im `SalesChannelContext` ein Customer vorhand
    `Cart::remove()` nicht verwenden; das LineItem ist `removable=false`. Stattdessen `$cart->getLineItems()->remove($surchargeId)`.
 
 8. **Feldname konfigurierbar.**  
-   Der technische Name des Kunden-Custom-Fields wird als Plugin-Konfiguration gepflegt (`TopdataSurchargeSW6.config.lsvaCustomerField`). Standardwert: `topdata_ipim_lsva`. Leere oder ungültige Werte fallen auf den Standard zurück.
+   Der technische Name des Kunden-Custom-Fields wird als Plugin-Konfiguration gepflegt (`TopdataSurchargeSW6.config.lsvaCustomerField`). Standardwert: `topdata_tg_lsva`. Leere oder ungültige Werte fallen auf den Standard zurück.
 
 ## Architektur und Datenfluss
 
@@ -68,7 +68,7 @@ LSVA-pflichtig ist ein Kunde, wenn im `SalesChannelContext` ein Customer vorhand
 SalesChannelContext
   └─ customer
        ├─ null ─────────────────────────────> keine LSVA
-       └─ customFields[lsvaCustomerField]  (Default: topdata_ipim_lsva)
+       └─ customFields[lsvaCustomerField]  (Default: topdata_tg_lsva)
             ├─ yes/ja/true/1 ───────────────> LSVA wird erhoben
             ├─ no/nein/false/0 ─────────────> keine LSVA
             └─ fehlt/leer/unbekannt
@@ -103,7 +103,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class LsvaTaxApplicabilityService
 {
-    public const DEFAULT_CUSTOM_FIELD = 'topdata_ipim_lsva';
+    public const DEFAULT_CUSTOM_FIELD = 'topdata_tg_lsva';
     public const CONFIG_KEY = 'TopdataSurchargeSW6.config.lsvaCustomerField';
 
     public function __construct(
@@ -229,13 +229,13 @@ Neues Konfigurationsfeld für den Custom-Field-Namen:
 ```xml
 <input-field type="text">
     <name>lsvaCustomerField</name>
-    <label>IPIM-Feldname für LSVA</label>
-    <label lang="en-GB">IPIM field name for LSVA</label>
-    <label lang="fr-FR">Nom du champ IPIM pour la LSVA</label>
-    <defaultValue>topdata_ipim_lsva</defaultValue>
-    <helpText>Technischer Name des Kunden-Custom-Fields, z. B. topdata_ipim_lsva.</helpText>
-    <helpText lang="en-GB">Technical name of the customer custom field, e.g. topdata_ipim_lsva.</helpText>
-    <helpText lang="fr-FR">Nom technique du custom field client, p. ex. topdata_ipim_lsva.</helpText>
+    <label>Custom-Field für LSVA-Pflicht</label>
+    <label lang="en-GB">Custom field for LSVA eligibility</label>
+    <label lang="fr-FR">Custom field pour l'assujettissement LSVA</label>
+    <defaultValue>topdata_tg_lsva</defaultValue>
+    <helpText>Technischer Name des Kunden-Custom-Fields aus dem Feld-Set topdata_tg. Standard: topdata_tg_lsva.</helpText>
+    <helpText lang="en-GB">Technical name of the customer custom field from the field set topdata_tg. Default: topdata_tg_lsva.</helpText>
+    <helpText lang="fr-FR">Nom technique du custom field client du field set topdata_tg. Valeur par défaut : topdata_tg_lsva.</helpText>
 </input-field>
 ```
 
@@ -303,14 +303,14 @@ Keine Änderung nötig:
 - Ohne LSVA bleiben beide Variablen `null`; der Block wird nicht gerendert.
 - Labels: DE `LSVA`, FR `RPLP`.
 
-### 6. Cleanup vor Go-Live
+### 6. Cleanup vor Go-Live (erledigt)
 
-Diese Reste sind nicht Teil der LSVA-Logik, müssen aber vor dem Release entfernt werden:
+Die folgenden Debug-/Defekt-Reste wurden entfernt:
 
-- `src/Resources/views/storefront/layout/header/header.html.twig`: Debug-Ausgabe `HURRA, ES KLAPPT!`.
-- `src/Resources/views/storefront/page/checkout/cart/index.html.twig`: orange Testbox `TEST: ICH BIN DIE WARENKORB-ZUSAMMENFASSUNG`.
-- `src/Resources/views/storefront/page/checkout/confirm/index.html.twig`: purple Testbox und kaputter Text.
-- `src/Resources/views/storefront/page/checkout/confirm/confirm-checkout.html.twig`: prüfen, ob die Datei gerendert wird. Sie erweitert `confirm-checkout-summary.html.twig`, das im Core nicht existiert. Entweder löschen oder korrekt anbinden.
+- `src/Resources/views/storefront/layout/header/header.html.twig`: Debug-Ausgabe `HURRA, ES KLAPPT!` — Datei gelöscht.
+- `src/Resources/views/storefront/page/checkout/cart/index.html.twig`: orange Testbox `TEST: ICH BIN DIE WARENKORB-ZUSAMMENFASSUNG` — Datei gelöscht.
+- `src/Resources/views/storefront/page/checkout/confirm/index.html.twig`: purple Testbox und kaputter Text — Datei gelöscht.
+- `src/Resources/views/storefront/page/checkout/confirm/confirm-checkout.html.twig`: erweiterte das im Core nicht existierende `confirm-checkout-summary.html.twig` — Datei gelöscht; die Anzeige im Checkout erfolgt über `summary.html.twig`.
 
 ## Anzeige-Verhalten nach der Änderung
 
@@ -320,13 +320,13 @@ Diese Reste sind nicht Teil der LSVA-Logik, müssen aber vor dem Release entfern
 - **Gast mit `yes` im aktuellen Datensatz:** LSVA überall, wo der Gast-Customer im Context ist.
 - **Gast ohne Wert, früherer Gast mit `yes`:** LSVA nach dem Gast-Checkout, sobald der neue Gast-Customer im Context ist.
 - **Gast ohne Wert, früherer Gast mit `no`:** Keine LSVA.
-- **Neukunde:** Keine LSVA, bis IPIM das Feld setzt.
+- **Neukunde:** Keine LSVA, bis das Feld gesetzt wird.
 - **Login/Logout:** Beim nächsten Cart-Recalculate wird das LineItem hinzugefügt oder entfernt.
 - **Header:** Bleibt unverändert; kein Eingriff in die Anzeige.
 
 ## Testmatrix (manuell)
 
-Voraussetzung: Testkunden mit `topdata_ipim_lsva = yes` und `no` über Admin oder DB setzen. Das Feld wird von IPIM angelegt, nicht vom Plugin.
+Voraussetzung: Testkunden mit `topdata_tg_lsva = yes` und `no` über Admin oder DB setzen. Das Feld wird extern im Feld-Set `topdata_tg` angelegt, nicht vom Plugin.
 
 1. Anonymer Besucher, Warenkorb/Offcanvas: keine LSVA.
 2. Eingeloggter `yes`-Kunde, Warenkorb: LSVA sichtbar, Summe enthält LSVA.
@@ -345,7 +345,7 @@ Voraussetzung: Testkunden mit `topdata_ipim_lsva = yes` und `no` über Admin ode
 15. Kontakt-Login: LSVA des Hauptkunden.
 16. Login/Logout im laufenden Cart: LSVA wird korrekt hinzugefügt/entfernt.
 17. Steueranzeige und Rappenrundung unverändert.
-18. Konfigurierter Feldname: anderes gültiges Feld wird gelesen; leerer/ungültiger Wert fällt auf `topdata_ipim_lsva` zurück.
+18. Konfigurierter Feldname: anderes gültiges Feld wird gelesen; leerer/ungültiger Wert fällt auf `topdata_tg_lsva` zurück.
 
 ## Rollout
 
@@ -363,8 +363,8 @@ docker exec focus-www sh -lc 'cd /www && bin/console cache:warmup --env=prod'
 ## Risiken und offene Punkte
 
 - **Unveränderlicher Rahmen:** Berechnung, LineItem, Steuerlogik, Templates, Mail und Better-Checkout bleiben unangetastet. Einzige fachliche Änderung ist die Prüfung, ob die bestehende LSVA-Berechnung ausgeführt wird.
-- **Feldname** ist konfigurierbar (`TopdataSurchargeSW6.config.lsvaCustomerField`), Standard `topdata_ipim_lsva`. Wird der Name geändert, werden alte Werte unter dem bisherigen JSON-Key nicht mehr gefunden; IPIM muss das neue Feld befüllen oder es braucht eine Migration. Das Werteformat ist weiterhin im Service normalisiert.
-- **Feld noch nicht in der DB:** Solange IPIM `topdata_ipim_lsva` nicht angelegt und befüllt hat, wird keine LSVA erhoben. Das ist bei der Inbetriebnahme zu berücksichtigen.
+- **Feldname** ist konfigurierbar (`TopdataSurchargeSW6.config.lsvaCustomerField`), Standard `topdata_tg_lsva`. Wird der Name geändert, werden alte Werte unter dem bisherigen JSON-Key nicht mehr gefunden; das neue Feld muss extern befüllt werden oder es braucht eine Migration. Das Werteformat ist weiterhin im Service normalisiert.
+- **Feld noch nicht in der DB:** Solange `topdata_tg_lsva` nicht angelegt und befüllt ist, wird keine LSVA erhoben. Das ist bei der Inbetriebnahme zu berücksichtigen.
 - **JSON-Path-Bindung:** Falls `JSON_EXTRACT(custom_fields, :path)` mit Doctrine/MariaDB nicht wie erwartet funktioniert, den Pfad als Literal in den SQL-String schreiben.
 - **Gast-Fallback:** Existiert kein früherer Gastdatensatz mit gesetztem Wert, bleibt es bei „keine LSVA“. Das ist die abgestimmte Regel.
 - **Keine automatisierten Tests im Plugin.** Die Testmatrix ist manuell abzuarbeiten.

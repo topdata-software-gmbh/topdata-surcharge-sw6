@@ -9,7 +9,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class LsvaTaxApplicabilityService
 {
-    public const DEFAULT_CUSTOM_FIELD = 'topdata_ipim_lsva';
+    public const DEFAULT_CUSTOM_FIELD = 'topdata_tg_lsva';
     public const CONFIG_KEY = 'TopdataSurchargeSW6.config.lsvaCustomerField';
 
     public function __construct(
