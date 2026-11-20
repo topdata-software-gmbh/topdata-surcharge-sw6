@@ -1,78 +1,92 @@
 # Topdata Surcharge for Shopware 6
 
-A Shopware 6 plugin that adds a configurable percentage surcharge to the shopping cart. The surcharge is calculated based on the cart total and can be customized through the Shopware administration.
+A Shopware 6 plugin that adds a configurable percentage surcharge to the shopping cart.
+The surcharge is calculated from the cart position price, displayed as its own cart line
+item, and can be limited to customers flagged as LSVA-liable (Swiss heavy vehicle charge).
 
 ## Features
 
-- Configurable surcharge percentage (default: 3.9%)
-- Multi-language support using Shopware snippets
-- Enable/disable the surcharge via administration
-- Automatically applied to cart
+- Configurable surcharge percentage (default: `3.9 %`)
+- Optional Swiss **Rappenrundung** (rounds to the nearest `0.05`)
+- Selectable tax rate applies to the surcharge
+- Correct handling of gross, net and tax-free sales channels (B2C / B2B)
+- Surcharge name is a translator key or plain text, with shipped `de-DE`, `en-GB` and `fr-FR` snippets
+- Eligibility gate: surcharge only for customers whose LSVA custom field is truthy
+- Guest fallback: reuses the most recent value of a previous guest with the same e-mail
+- Dedicated display in offcanvas cart, cart widget, checkout summary and order detail
+- Included in order confirmation mails via `surchargeLabel` / `surchargeTotal`
+- Enable/disable the entire feature from the administration
+
+## Requirements
+
+- Shopware `6.7.*`
+- PHP `8.3` or higher
 
 ## Installation
 
-### Via Composer
+With Composer:
 
 ```bash
 composer require topdata/topdata-surcharge-sw6
 bin/console plugin:install --activate TopdataSurchargeSW6
 ```
 
-### Manual Installation
+Manual installation and upgrade instructions are in [docs/installation.md](docs/installation.md).
 
-1. Copy this plugin to `custom/plugins/TopdataSurchargeSW6`
-2. Run: `bin/console plugin:install --activate TopdataSurchargeSW6`
+## Configuration overview
 
-## Configuration
+After activation go to **Settings → System → Plugins → Topdata Cart Surcharge** and
+configure the following. Full descriptions, defaults and examples are in
+[docs/configuration.md](docs/configuration.md).
 
-After installation, configure the plugin in Shopware Administration:
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `isActive` | `true` | Enable or disable the surcharge |
+| `surchargePercentage` | `3.9` | Percentage of the cart position price |
+| `surchargeName` | `TopdataSurchargeSW6.surchargeName` | Translator key or literal label |
+| `taxId` | – | Tax rate applied to the surcharge |
+| `lsvaCustomerField` | `topdata_tg_lsva` | Customer custom field used for eligibility |
+| `enableRappenRundung` | `false` | Round the surcharge to `0.05` |
 
-1. Go to **Settings** → **System** → **Plugins**
-2. Find **Topdata Cart Surcharge** and click on it
-3. Configure the following settings:
-   - **Active**: Enable or disable the surcharge
-   - **Surcharge Percentage**: The percentage to charge (e.g., 3.9)
-   - **Surcharge Name**: The translation key or label shown in the cart.
-     - **Default**: `TopdataSurchargeSW6.surchargeName`
-     - You can use a custom translation key or enter plain text directly. If plain text is entered, it will be used regardless of the chosen locale.
-   - **Tax ID**: The tax rate applied to the surcharge
-   - **Custom field for LSVA eligibility**: Name of the customer custom field that marks a customer as LSVA-liable. Default: `topdata_tg_lsva` (field set `topdata_tg`). The surcharge is only calculated when the field normalizes to `yes`, `ja`, `true` or `1`; `no`, `nein`, `false` or `0` disables it.
+## How the surcharge is calculated
 
-### LSVA Eligibility
-
-The surcharge is only added for LSVA-liable customers. A customer is liable when the configured custom field contains a truthy value. Guests without a value fall back to the newest previous guest record with the same e-mail that has a value. Customers without the field are not charged until the external integration sets it.
-
-### Translating Surcharge Names
-The default value uses Shopware snippets. To customize translations:
-1. Go to **Settings** → **Shop** → **Snippets** in your Shopware Administration.
-2. Select your language snippet set.
-3. Search for the key `TopdataSurchargeSW6.surchargeName`.
-4. Enter your localized text (e.g., "LSVA" for German, "Service Surcharge" for English, "RPLP" for French).
-
-### Calculation
-
-The surcharge is calculated on the **cart position price** (after promotions) and treated as a **net price** with tax added on top.
+The surcharge is treated as a **net** amount with tax added on top:
 
 ```
-totalPrice (net, taxRate=2.6%): 135.60
-Surcharge (3.9% [per plugin setting] "LSVA", net, taxRate=8.1% [per plugin setting]): 135.60 * 0.039 = 5.29
-Shipping (net, taxRate=8.1%) = 10.95
-
-VAT 2.6% = 135.60 * 0.026 = 3.53
-VAT 8.1% = (10.95 + 5.29) * 0.081 = 1.32
-
-Gesamtsumme = 135.60 + 5.29 + 10.95 + 3.53 + 1.32 = 156.69 (maybe rounded to 156.70 because of Rappenrundung)
+base            = cart position price (after promotions/vouchers, excl. shipping)
+surcharge (net) = round(base * percentage / 100, 2)
+tax             = round(surcharge * taxRate / 100, 2)
+total           = surcharge + tax
 ```
 
-## Requirements
+Example (net prices, surcharge `3.9 %`, tax `8.1 %`):
 
-- Shopware 6.7 or higher
-- PHP 8.3 or higher
+```
+base                    = 135.60
+surcharge (net)         = 135.60 * 0.039        = 5.29
+tax (8.1 % of surcharge)= 5.29   * 0.081        = 0.43
+surcharge total         = 5.72
+```
+
+With **Rappenrundung** enabled every intermediate amount is rounded to `0.05` instead of
+`0.01`. See [docs/how-it-works.md](docs/how-it-works.md) for the full data flow.
+
+## Documentation
+
+- [docs/installation.md](docs/installation.md) — install, update and cache commands
+- [docs/configuration.md](docs/configuration.md) — every setting explained
+- [docs/how-it-works.md](docs/how-it-works.md) — cart processor, eligibility, mail and templates
+- [docs/developer-guide.md](docs/developer-guide.md) — services, extension points, conventions
+- [docs/troubleshooting.md](docs/troubleshooting.md) — common problems and fixes
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## Author
 
-Topdata GmbH
+Topdata Software GmbH — <https://www.topdata.de>
